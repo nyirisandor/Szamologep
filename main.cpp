@@ -153,7 +153,7 @@ int main(int, char**)
                     for (size_t j = 0; j < 4; j++)
                     {
                         ImGui::TableSetColumnIndex(j);
-                        ImGui::Button(std::to_string(i*4+j).c_str(),io.DisplaySize/4-ImVec2(20,20));
+                        ImGui::Button(std::to_string(i*4+j).c_str(),io.DisplaySize/4-ImVec2(15,10));
                     }
                    
                 }
