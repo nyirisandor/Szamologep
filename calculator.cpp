@@ -1,14 +1,7 @@
-#include <iostream>
-#include <string>
-#include <vector>
-#include <math.h>
+#include "calculator.h"
 
-enum associativity{
-    left,
-    right
-};
 
-int getAssociativity(char op){
+int calculator::getAssociativity(char op){
     switch (op)
     {
     case '+':
@@ -29,7 +22,7 @@ int getAssociativity(char op){
     }
 }
 
-int getPrecedence(char op){
+int calculator::getPrecedence(char op){
     switch (op)
     {
     case '+':
@@ -51,18 +44,7 @@ int getPrecedence(char op){
 }
 
 
-
-template<typename T>
-std::ostream& operator<<(std::ostream& o, std::vector<T> v){
-    for (T e : v)
-    {
-        o << e << " ";
-    }
-
-    return o;
-}
-
-std::vector<std::string> exprToRPN(std::string expression){
+std::vector<std::string> calculator::exprToRPN(std::string expression){
     std::vector<std::string> output = {""};
     std::vector<std::string> operatorStack;
 
@@ -88,14 +70,7 @@ std::vector<std::string> exprToRPN(std::string expression){
         }
         else{ //if token is operator
             char op = expression.at(0);
-            /*
-                    while (
-            there is an operator o2 at the top of the operator stack which is not a left parenthesis, 
-            and (o2 has greater precedence than o1 or (o1 and o2 have the same precedence and o1 is left-associative))
-            ):
-                pop o2 from the operator stack into the output queue
-            push o1 onto the operator stack
-            */
+
            while(operatorStack.size() > 0 &&operatorStack.back() != "(" && (getPrecedence(operatorStack.back()[0]) > getPrecedence(op) || (getPrecedence(operatorStack.back()[0]) == getPrecedence(op) && getAssociativity(op) == associativity::left))){
                 output.emplace_back(operatorStack.back());
                 operatorStack.pop_back();
@@ -125,7 +100,7 @@ std::vector<std::string> exprToRPN(std::string expression){
 }
 
 
-bool isNumber(std::string s, double &res){
+bool calculator::isNumber(std::string s, double &res){
     try
     {
         res = std::stod(s);
@@ -138,7 +113,7 @@ bool isNumber(std::string s, double &res){
     
 }
 
-double solveRPN(std::vector<std::string> rpnExpression){
+double calculator::solveRPN(std::vector<std::string> rpnExpression){
     std::vector<double> stack;
     double num;
     for(std::string e: rpnExpression)
@@ -174,20 +149,4 @@ double solveRPN(std::vector<std::string> rpnExpression){
     
 
     return stack.at(0);
-}
-
-int main(){
-    std::string input;
-
-    std::getline(std::cin >> std::ws,input);
-
-    std::vector<std::string> rpnExpression = exprToRPN(input);
-
-    std::cout << "Input: " << input << std::endl;
-    std::cout << "RPN expression: " << rpnExpression << std::endl;
-    std::cout << "Result: " << solveRPN(rpnExpression) << std::endl;
-
-
-
-    return 0;
 }

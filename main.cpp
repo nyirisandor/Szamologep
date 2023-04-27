@@ -40,7 +40,7 @@ ImVec2 operator-(ImVec2 v1, ImVec2 v2){
     return ImVec2(v1.x - v2.x, v1.y-v2.y);
 }
 
-#include <string>
+#include "calculator.h"
 
 // Main code
 int main(int, char**)
@@ -143,8 +143,12 @@ int main(int, char**)
             ImGui::SetNextWindowPos(ImVec2(0,0));
             ImGui::Begin("##MainWindow",NULL,ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
-            ImGui::Text("Számok");
-
+            static char input[256] = {};
+            ImGui::InputText("##Bemenet",input,sizeof(input));
+            if(ImGui::Button("Calculate")){
+                std::vector<std::string> RPN = calculator::exprToRPN(std::string(input));
+                strcpy(input,std::to_string(calculator::solveRPN(RPN)).c_str());
+            };
 
             ImGui::BeginTable("ButtonsTable",4,0,io.DisplaySize);
                 for (size_t i = 0; i < 4; i++)
@@ -153,7 +157,7 @@ int main(int, char**)
                     for (size_t j = 0; j < 4; j++)
                     {
                         ImGui::TableSetColumnIndex(j);
-                        ImGui::Button(std::to_string(i*4+j).c_str(),io.DisplaySize/4-ImVec2(15,10));
+                        ImGui::Button(std::to_string(i*4+j).c_str(),io.DisplaySize/4-ImVec2(20,50));
                     }
                    
                 }
