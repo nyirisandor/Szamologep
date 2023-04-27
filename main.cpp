@@ -2,10 +2,13 @@
 // (GLFW is a cross-platform general purpose library for handling windows, inputs, OpenGL/Vulkan/Metal graphics context creation, etc.)
 // If you are new to Dear ImGui, read documentation from the docs/ folder + read the top of imgui.cpp.
 // Read online: https://github.com/ocornut/imgui/tree/master/docs
+                #include <iostream>
+
 
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#include "misc/cpp/imgui_stdlib.h"
 #include <stdio.h>
 #define GL_SILENCE_DEPRECATION
 #if defined(IMGUI_IMPL_OPENGL_ES2)
@@ -30,17 +33,8 @@ static void glfw_error_callback(int error, const char* description)
     fprintf(stderr, "GLFW Error %d: %s\n", error, description);
 }
 
-
-template<typename T>
-ImVec2 operator/(ImVec2 vec,T num){
-    return ImVec2(vec.x/num,vec.y/num);
-}
-
-ImVec2 operator-(ImVec2 v1, ImVec2 v2){
-    return ImVec2(v1.x - v2.x, v1.y-v2.y);
-}
-
 #include "calculator.h"
+#include <sstream>
 
 // Main code
 int main(int, char**)
@@ -143,25 +137,47 @@ int main(int, char**)
             ImGui::SetNextWindowPos(ImVec2(0,0));
             ImGui::Begin("##MainWindow",NULL,ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
-            static char input[256] = {};
-            ImGui::InputText("##Bemenet",input,sizeof(input));
-            if(ImGui::Button("Calculate")){
-                std::vector<std::string> RPN = calculator::exprToRPN(std::string(input));
-                strcpy(input,std::to_string(calculator::solveRPN(RPN)).c_str());
+            static std::string input = "";
+            ImGui::PushItemWidth(io.DisplaySize.x);
+            ImGui::InputText("##Bemenet",&input);
+            ImGui::PopItemWidth();
+
+            ImVec2 btnSize = ImVec2((io.DisplaySize.x-40)/4,(io.DisplaySize.y-75)/6);
+
+            ImGui::InvisibleButton("##block",btnSize);
+            ImGui::SameLine();
+            ImGui::InvisibleButton("##block",btnSize);
+
+            ImGui::SameLine();
+            if(ImGui::Button("Clear",btnSize)){
+                input = "";
             };
 
-            ImGui::BeginTable("ButtonsTable",4,0,io.DisplaySize);
-                for (size_t i = 0; i < 4; i++)
-                {
-                    ImGui::TableNextRow();
-                    for (size_t j = 0; j < 4; j++)
-                    {
-                        ImGui::TableSetColumnIndex(j);
-                        ImGui::Button(std::to_string(i*4+j).c_str(),io.DisplaySize/4-ImVec2(20,50));
-                    }
-                   
+            ImGui::SameLine();
+            if(ImGui::Button("<-",btnSize)){
+                if(input.length() > 0)
+                    input.erase(input.length()-1);
+            };
+
+            std::string symbols = "()^/123*456-789+%0.";
+            for (size_t i = 0; i < symbols.length(); i++)
+            {
+                if(ImGui::Button(symbols.substr(i,1).c_str(),btnSize)){
+                    input += symbols.substr(i,1);
                 }
-            ImGui::EndTable();
+
+                if(i % 4 != 3){
+                    ImGui::SameLine();
+                }
+            }
+            if(ImGui::Button("=",btnSize)){
+                std::vector<std::string> RPN = calculator::exprToRPN(std::string(input));
+                std::stringstream ss;
+                ss << calculator::solveRPN(RPN);
+                input = ss.str();
+            };
+
+
 
 
             ImGui::End();

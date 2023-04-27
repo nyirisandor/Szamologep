@@ -43,13 +43,18 @@ int calculator::getPrecedence(char op){
     }
 }
 
-
 std::vector<std::string> calculator::exprToRPN(std::string expression){
-    std::vector<std::string> output = {""};
+    std::vector<std::string> output;
     std::vector<std::string> operatorStack;
+
+
 
     while (expression.length() > 0)
     {
+        if(output.size() == 0){
+            output.emplace_back("");
+        }
+
         if(expression[0] == ' '){ //if the token is a whitespace
             
         }
@@ -91,9 +96,6 @@ std::vector<std::string> calculator::exprToRPN(std::string expression){
         output.emplace_back(operatorStack.back());
         operatorStack.pop_back();
     }
-    
-    
-
 
 
     return output;
@@ -114,8 +116,13 @@ bool calculator::isNumber(std::string s, double &res){
 }
 
 double calculator::solveRPN(std::vector<std::string> rpnExpression){
+    if(rpnExpression.size() == 0){
+        return 0;
+    }
+
     std::vector<double> stack;
     double num;
+
     for(std::string e: rpnExpression)
     {
         if(isNumber(e,num)){
