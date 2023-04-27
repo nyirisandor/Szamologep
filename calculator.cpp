@@ -1,124 +1,191 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <math.h>
 
-namespace{
-    struct egyenlet{
-        std::string balOldal;
-        std::string jobbOldal;
-        char muveleti_jel;
-    };
+enum associativity{
+    left,
+    right
+};
 
-    //precedence
-    egyenlet egyenletKeres(std::string kifejezes){
-        egyenlet eredmeny;
-        //eredmeny.muveleti_jel = kifejezes.at(jelIndex);
-        //eredmeny.balOldal = kifejezes.substr(0,jelIndex);
-        //eredmeny.jobbOldal = kifejezes.substr(jelIndex+1);
-        //TODO find next operator
-
-        return eredmeny;
-    }
-
-    float egyenletMegold(egyenlet e){
-        float left = std::stof(e.balOldal);
-        float right = std::stof(e.jobbOldal);
-
-        switch (e.muveleti_jel)
-        {
-        case '+':
-            return left + right;
-        
-        default:
-            return 0;
-        }
-    }
-
-        std::string zarojelKeres(std::string& kifejezes){
-        size_t lastParenthesisIndex = kifejezes.find_last_of('(');
-        size_t unclosed = 1;
-        size_t i = lastParenthesisIndex + 1;
-
-        std::string eredmeny;
-        while (unclosed != 0 && i < kifejezes.size())
-        {
-            if(kifejezes.at(i) == '('){
-                unclosed++;
-            }
-            else if(kifejezes.at(i) == ')'){
-                unclosed--;
-            }
-
-            if(unclosed != 0){
-                eredmeny+= kifejezes.at(i);
-            }
-            i++;
-        }
-        
-        egyenlet egy = egyenletKeres(eredmeny);
-        kifejezes.replace(lastParenthesisIndex,i-lastParenthesisIndex,std::to_string(egyenletMegold(egy)));
-
-        return eredmeny;
-        
-    }
-
-
-    std::ostream& operator<<(std::ostream& o, egyenlet e){
-        o << "Bal oldal:\t" << e.balOldal << std::endl << "Muvelet:\t" << e.muveleti_jel << std::endl  << "Jobb oldal:\t" << e.jobbOldal << std::endl;
-
-
-        return o;
-    }
-
-    void szamolgat(std::string kifejezes){
-    //először a zárójeles kifejezéseket kell kiszámolni
-
-    while (kifejezes.find('(') != std::string::npos)
+int getAssociativity(char op){
+    switch (op)
     {
-        std::string zarojeles = ::zarojelKeres(kifejezes);
-        //std::cout << "Zarojeles: " << zarojeles << std::endl << "Maradt: " << kifejezes << std::endl;
-        //std::cout << egyenletKeres(zarojeles,zarojeles.find('+'));
+    case '+':
+        return associativity::left;
+    case '-':
+        return associativity::left;
+    case '/':
+        return associativity::left;
+    case '*':
+        return associativity::left;
+    case '%':
+        return associativity::left;
+    case '^':
+        return associativity::right;
+    
+    default:
+        return associativity::left;
+    }
+}
+
+int getPrecedence(char op){
+    switch (op)
+    {
+    case '+':
+        return 2;
+    case '-':
+        return 2;
+    case '/':
+        return 3;
+    case '*':
+        return 3;
+    case '%':
+        return 3;
+    case '^':
+        return 4;
+    
+    default:
+        return 0;
+    }
+}
+
+
+
+template<typename T>
+std::ostream& operator<<(std::ostream& o, std::vector<T> v){
+    for (T e : v)
+    {
+        o << e << " ";
+    }
+
+    return o;
+}
+
+std::vector<std::string> exprToRPN(std::string expression){
+    std::vector<std::string> output = {""};
+    std::vector<std::string> operatorStack;
+
+    while (expression.length() > 0)
+    {
+        if(expression[0] == ' '){ //if the token is a whitespace
+            
+        }
+        else if(expression[0] == '('){
+            operatorStack.emplace_back("(");
+        }
+        else if(expression[0] == ')'){
+            while (operatorStack.back() != "(")
+            {
+                output.emplace_back(operatorStack.back());
+                operatorStack.pop_back();
+            }
+            operatorStack.pop_back();
+            
+        }
+        else if(isdigit(expression[0]) || output.back() == "" || expression[0] == '.'){ // if token is a part of the number
+            output.back() +=expression[0];
+        }
+        else{ //if token is operator
+            char op = expression.at(0);
+            /*
+                    while (
+            there is an operator o2 at the top of the operator stack which is not a left parenthesis, 
+            and (o2 has greater precedence than o1 or (o1 and o2 have the same precedence and o1 is left-associative))
+            ):
+                pop o2 from the operator stack into the output queue
+            push o1 onto the operator stack
+            */
+           while(operatorStack.size() > 0 &&operatorStack.back() != "(" && (getPrecedence(operatorStack.back()[0]) > getPrecedence(op) || (getPrecedence(operatorStack.back()[0]) == getPrecedence(op) && getAssociativity(op) == associativity::left))){
+                output.emplace_back(operatorStack.back());
+                operatorStack.pop_back();
+           }
+
+
+            operatorStack.emplace_back("");
+            operatorStack.back() += op;
+            output.emplace_back("");
+        }
+
+        expression.erase(0,1);
         
     }
 
+    while(operatorStack.size() > 0)
+    {
+        output.emplace_back(operatorStack.back());
+        operatorStack.pop_back();
+    }
+    
     
 
-    //std::cout << "Eredmeny: " << egyenletKeres(kifejezes,kifejezes.find('+'));
+
+
+    return output;
+}
+
+
+bool isNumber(std::string s, double &res){
+    try
+    {
+        res = std::stod(s);
+        return true;
+    }
+    catch(const std::exception& e)
+    {
+        return false;
+    }
     
 }
 
-}
-
-
-
-namespace{
-    std::vector<std::string> felbont(std::string text){
-        std::vector<std::string> res;
-        for (size_t i = 0; i < text.size(); i++)
-        {
-            //TODO split text into numbers and operators
+double solveRPN(std::vector<std::string> rpnExpression){
+    std::vector<double> stack;
+    double num;
+    for(std::string e: rpnExpression)
+    {
+        if(isNumber(e,num)){
+            stack.emplace_back(num);
         }
-
-
-        return res;
-        
-    }
-
-    template<typename T>
-    std::ostream& operator<<(std::ostream& o, std::vector<T> v){
-        for(T e: v){
-            o << e << "\n";
+        else{
+            double rightNum = stack.back();
+            stack.pop_back();
+            double leftNum = stack.back();
+            stack.pop_back();
+            if(e == "+"){
+                stack.push_back(leftNum + rightNum);
+            }
+            else if(e == "-"){
+                stack.push_back(leftNum - rightNum);
+            }
+            else if(e == "/"){
+                stack.push_back(leftNum / rightNum);
+            }
+            else if(e == "*"){
+                stack.push_back(leftNum * rightNum);
+            }
+            else if(e == "%"){
+                stack.push_back((int)leftNum%(int)rightNum);
+            }
+            else if(e == "^"){
+                stack.push_back(pow(leftNum,rightNum));
+            }
         }
-
-        return o;
     }
-}
+    
 
+    return stack.at(0);
+}
 
 int main(){
-    std::string input = "-10 + (1 + 2)";
+    std::string input;
 
-    std::cout << felbont(input);
+    std::getline(std::cin >> std::ws,input);
+
+    std::vector<std::string> rpnExpression = exprToRPN(input);
+
+    std::cout << "Input: " << input << std::endl;
+    std::cout << "RPN expression: " << rpnExpression << std::endl;
+    std::cout << "Result: " << solveRPN(rpnExpression) << std::endl;
 
 
 
